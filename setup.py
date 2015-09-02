@@ -9,7 +9,7 @@ config = {
     'author': 'Eran Zimbler',
     'url': 'https://github.com/srgrn/pystatuspage',
     'author_email': 'eran@zimbler.net',
-    'version': '0.0.1',
+    'version': '0.0.2',
     'install_requires': ['requests'],
     'packages': ['pystatuspage'],
     'name': 'pystatuspage',

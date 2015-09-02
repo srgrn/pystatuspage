@@ -74,7 +74,7 @@ class StatusPageApi(object):
         return components
 
     def update_component(self, component, new_status):
-        if new_status not in component.STATUS_LIST:
+        if new_status not in StatusPageComponent.STATUS_LIST:
             raise StatusPageApiError("Not a valid status")
         if self._oauth_token is None:
             logging.error('Cannot access private APIs without OAuth token')
