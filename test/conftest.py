@@ -1,12 +1,21 @@
 import pytest
 import pystatuspage
+import os
+
+SECRETS_FILE = 'secrets.json'
 
 
 @pytest.fixture(scope="module")
 def secrets():
-    import json
-    with open("secrets.json") as json_file:
-        secrets = json.load(json_file)
+
+    if os.path.exists(SECRETS_FILE):
+        import json
+        with open(SECRETS_FILE) as json_file:
+            secrets = json.load(json_file)
+    else:
+        secrets = {}
+        secrets['organization_id'] = os.environ.get('STATUSPAGE_ORG_ID', '12345678')
+        secrets['key'] = os.environ.get('STATUSPAGE_API_KEY', 'No Key Found')
     return secrets
 
 
