@@ -67,24 +67,63 @@ class StatusPageApi(object):
 
     def get_all_components(self):
         components = []
-        res = requests.get(self._public_url + "components.json")
+        if not hasattr(self, '_oauth_token'):
+            res = requests.get(self._public_url + "components.json")
+            fieldname = 'components'
+        else:
+            header = {'Authorization': 'OAuth ' + self._oauth_token}
+            url = url = "%s%s/components.json" % (PRIVATE_API_URL, self._organization)
+            res = requests.get(url, headers=header)
+            fieldname = 'data'
         self.check_status_code(res)
-        for component in res.json()['components']:
+        for component in res.json()[fieldname]:
             components.append(StatusPageComponent(**component))
         return components
 
     def update_component(self, component, new_status):
         if new_status not in StatusPageComponent.STATUS_LIST:
             raise StatusPageApiError("Not a valid status")
-        if self._oauth_token is None:
+        if not hasattr(self, '_oauth_token'):
             logging.error('Cannot access private APIs without OAuth token')
             raise StatusPageApiError("Cannot access private API")
-        else:
-            header = {'Authorization': 'OAuth ' + self._oauth_token}
-            status_change = {"component[status]": new_status}
-            url = "%s%s/components/%s.json" % (PRIVATE_API_URL, self._organization, component.id)
-            msg = "Changing component %s from %s to %s" % (component.name, component.status, new_status)
-            logging.info(msg)
-            res = requests.patch(url, data=status_change, headers=header)
-            status = self.check_status_code(res)
-            logging.info(status)
+        header = {'Authorization': 'OAuth ' + self._oauth_token}
+        status_change = {"component[status]": new_status}
+        url = "%s%s/components/%s.json" % (PRIVATE_API_URL, self._organization, component.id)
+        msg = "Changing component %s from %s to %s" % (component.name, component.status, new_status)
+        logging.info(msg)
+        res = requests.patch(url, data=status_change, headers=header)
+        status = self.check_status_code(res)
+        logging.info(status)
+
+    def get_page_detail(self):
+        if not hasattr(self, '_oauth_token'):
+            logging.error('Cannot access private APIs without OAuth token')
+            raise StatusPageApiError("Cannot access private API")
+        header = {'Authorization': 'OAuth ' + self._oauth_token}
+        url = "%s%s.json" % (PRIVATE_API_URL, self._organization)
+        logging.info("Getting page details")
+        res = requests.get(url, headers=header)
+        status = self.check_status_code(res)
+        logging.info(status)
+        return res.json()['data']
+
+    def get_page_summary(self):
+        res = requests.get(self._public_url + "status.json")
+        logging.info("Getting public page summary")
+        res = requests.get(url)
+        status = self.check_status_code(res)
+        logging.info(status)
+        return res.json()
+
+    def update_page_etails(self, page_details):
+        if not hasattr(self, '_oauth_token'):
+            logging.error('Cannot access private APIs without OAuth token')
+            raise StatusPageApiError("Cannot access private API")
+        header = {'Authorization': 'OAuth ' + self._oauth_token}
+        url = "%s%s.json" % (PRIVATE_API_URL, self._organization)
+        url = "%s%s/components/%s.json" % (PRIVATE_API_URL, self._organization, component.id)
+        msg = "Changing component %s from %s to %s" % (component.name, component.status, new_status)
+        logging.info(msg)
+        res = requests.patch(url, data=status_change, headers=header)
+        status = self.check_status_code(res)
+        logging.info(status)
