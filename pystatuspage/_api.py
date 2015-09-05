@@ -14,6 +14,19 @@ class StatusPageApiError(Exception):
         return repr(self.msg)
 
 
+class StatusPagePage(object):
+
+    def __init__(self, **kwargs):
+        for name, value in kwargs.items():
+            if name.lower() in StatusPagePage.MUTABLE_ATTRIBUTES:
+                self[name.lower()] = value
+            else:
+                logging.info(name + " is not a valid mutable type of the page api")
+
+    MUTABLE_ATTRIBUTES = ["name", "url", "notifications_from_email", "time_zone", "city", "state", "country", "subdomain", "domain", "layout", "allow_email_subscribers", "allow_incident_subscribers", "allow_page_subscribers",
+                          "allow_sms_subscribers", "hero_cover_url", "transactional_logo_url", "css_body_background_color", "css_font_color", "css_light_font_color", "css_greens", "css_oranges", "css_reds", "css_yellows"]
+
+
 class StatusPageComponent(object):
     OPERATIONAL = 'operational'
     DEGRADED_PERFORMANCE = 'degraded_performance'
@@ -105,25 +118,28 @@ class StatusPageApi(object):
         res = requests.get(url, headers=header)
         status = self.check_status_code(res)
         logging.info(status)
-        return res.json()['data']
+        page = StatusPagePage(**res.json()['data'])
+        return page
 
     def get_page_summary(self):
         res = requests.get(self._public_url + "status.json")
         logging.info("Getting public page summary")
-        res = requests.get(url)
         status = self.check_status_code(res)
         logging.info(status)
         return res.json()
 
-    def update_page_etails(self, page_details):
+    def update_page_details(self, page_details):
         if not hasattr(self, '_oauth_token'):
             logging.error('Cannot access private APIs without OAuth token')
             raise StatusPageApiError("Cannot access private API")
         header = {'Authorization': 'OAuth ' + self._oauth_token}
         url = "%s%s.json" % (PRIVATE_API_URL, self._organization)
-        url = "%s%s/components/%s.json" % (PRIVATE_API_URL, self._organization, component.id)
-        msg = "Changing component %s from %s to %s" % (component.name, component.status, new_status)
+        data = {}
+        for key, value in page_details.items:
+            if key in StatusPagePage.MUTABLE_ATTRIBUTES:
+                data[key] = value
+        msg = "Updating your page with %s" % (str(data))
         logging.info(msg)
-        res = requests.patch(url, data=status_change, headers=header)
+        res = requests.patch(url, data=data, headers=header)
         status = self.check_status_code(res)
         logging.info(status)
