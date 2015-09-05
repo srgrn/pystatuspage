@@ -10,6 +10,7 @@ config = {
     'url': 'https://github.com/srgrn/pystatuspage',
     'author_email': 'eran@zimbler.net',
     'version': '0.0.2',
+    'license':'Simplified BSD',
     'install_requires': ['requests'],
     'packages': ['pystatuspage'],
     'name': 'pystatuspage',
